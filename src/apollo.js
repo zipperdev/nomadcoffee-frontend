@@ -1,7 +1,9 @@
-import { ApolloClient, InMemoryCache, makeVar } from "@apollo/client";
+import { ApolloClient, ApolloLink, InMemoryCache, makeVar } from "@apollo/client";
+import { setContext } from "@apollo/client/link/context";
+import { createUploadLink } from "apollo-upload-client";
 
-const AUTHENTICATION =  "AUTHENTICATION";
-const DARK_MODE = "DARK_MODE";
+export const AUTHENTICATION =  "AUTHENTICATION";
+export const DARK_MODE = "DARK_MODE";
 
 export const authenticatedVar = makeVar(Boolean(localStorage.getItem(AUTHENTICATION)));
 export const logUserIn = (token, history=null) => {
@@ -28,7 +30,25 @@ export const disableDarkMode = () => {
     darkModeVar(false);
 };
 
+const API_URI = "https://nomadcoffeeshop-backend.herokuapp.com/graphql";
+const authLink = setContext((_, { headers }) => {
+    return {
+        headers: {
+            ...headers, 
+            autorization: localStorage.getItem(AUTHENTICATION)
+        }
+    };
+});
+const uploadLink = createUploadLink({
+    uri: API_URI
+});
 export const client = new ApolloClient({
-    uri: "https://nomadcoffeeshop-backend.herokuapp.com/graphql", 
-    cache: new InMemoryCache()
+    link: ApolloLink.from([ authLink, uploadLink ]), 
+    cache: new InMemoryCache({
+        typePolicies: {
+            User: {
+                keyFields: obj => `User:${obj.username}`
+            }
+        }
+    })
 });

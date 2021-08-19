@@ -1,3 +1,4 @@
+import dotenv from "dotenv";
 import React from "react";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
@@ -9,12 +10,16 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import GithubCallback from "./pages/GithubCallback";
+import AddCoffeeShop from "./pages/AddCoffeeShop";
+import EditCoffeeShop from "./pages/EditCoffeeShop";
+import CoffeeShop from "./pages/CoffeeShop";
 import NotFound from "./pages/NotFound";
+dotenv.config();
 
 function App() {
     const darkMode = useReactiveVar(darkModeVar);
     const authenticated = useReactiveVar(authenticatedVar);
-    
+
     return (
         <ApolloProvider client={client}>
             <HelmetProvider>
@@ -23,13 +28,12 @@ function App() {
                     <Router>
                         <Switch>
                             <Route exact path="/" component={authenticated ? Home : Login} />
-                            {authenticated ? null : (
-                                <>
-                                    <Route path="/signup" component={Signup} />
-                                    <Route path="/github/callback" component={GithubCallback} />
-                                </>
-                            )}
-                            <Route component={NotFound} />
+                            {authenticated ? null : <Route exact path="/signup" component={Signup} />}
+                            {authenticated ? null : <Route exact path="/github/callback" component={GithubCallback} />}
+                            {authenticated ? <Route exact path="/add" component={AddCoffeeShop} /> : null}
+                            {authenticated ? <Route exact path="/shops/:id" component={CoffeeShop} /> : null}
+                            {authenticated ? <Route exact path="/shops/:id/edit" component={EditCoffeeShop} /> : null}
+                            <Route path="*" component={NotFound} />
                         </Switch>
                     </Router>
                 </ThemeProvider>

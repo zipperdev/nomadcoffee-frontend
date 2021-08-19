@@ -6,11 +6,12 @@ import { gql, useMutation, useQuery } from "@apollo/client";
 import ErrorText from "../components/auth/ErrorText";
 import AuthLayout from "../components/auth/AuthLayout";
 import BottomBox from "../components/auth/BottomBox";
-import Button from "../components/auth/Button";
+import Button from "../components/Button";
 import FormBox from "../components/auth/FormBox";
-import Input from "../components/auth/Input";
+import Input from "../components/Input";
 import Separator from "../components/auth/Separator";
 import PageTitle from "../components/PageTitle";
+import MainTitle from "../components/MainTitle";
 import { logUserIn } from "../apollo";
 
 const GITHUB_LOGIN_URL_QUERY = gql`
@@ -29,19 +30,8 @@ const LOGIN_MUTATION = gql`
     }
 `;
 
-const MainTitle = styled.span`
-    font-size: 30px;
-    font-weight: 600;
-    font-family: "Poppins", sans-serif !important;
-`;
-
-const SeparatorTitle = styled.strong`
-    font-size: 32px;
-    font-family: "Poppins", sans-serif !important;
-    margin: 0 16px;
-`;
-
 const GithubLogin = styled.a`
+    padding: 5px;
     text-decoration: none;
     display: flex;
     align-items: center;
@@ -54,7 +44,7 @@ const GithubLogin = styled.a`
 `;
 
 function Login() {
-    const { register, handleSubmit, watch, setError, getValues, clearErrors, formState: { errors, isValid } } = useForm({
+    const { register, handleSubmit, setError, getValues, clearErrors, formState: { errors, isValid } } = useForm({
         mode: "onChange"
     });
     const { data: githubLoginUrlData } = useQuery(GITHUB_LOGIN_URL_QUERY);
@@ -89,12 +79,8 @@ function Login() {
         <AuthLayout>
             <PageTitle title="Log In" />
             <FormBox>
-                <h1>
-                    <MainTitle>Nomad</MainTitle>
-                    <SeparatorTitle>X</SeparatorTitle>
-                    <MainTitle>Coffee</MainTitle>
-                </h1>
-                <form onSubmit={handleSubmit(onSubmitValid, () => console.log(watch("username")))}>
+                <MainTitle />
+                <form onSubmit={handleSubmit(onSubmitValid)}>
                     <Input ref={register({
                         required: "Username is required."
                     })} onChange={() => clearErrors("result")} name="username" type="text" placeholder="Username" errorMessage={errors?.username?.message}  />

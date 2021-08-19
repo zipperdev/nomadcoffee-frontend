@@ -5,10 +5,11 @@ import styled from "styled-components";
 import { gql, useMutation } from "@apollo/client";
 import AuthLayout from "../components/auth/AuthLayout";
 import BottomBox from "../components/auth/BottomBox";
-import Button from "../components/auth/Button";
+import Button from "../components/Button";
 import FormBox from "../components/auth/FormBox";
-import Input from "../components/auth/Input";
+import Input from "../components/Input";
 import PageTitle from "../components/PageTitle";
+import MainTitle from "../components/MainTitle";
 
 const CREATE_ACCOUNT_MUTATION = gql`
     mutation createAccount($username: String!, $email: String!, $name: String!, $location: String!, $password: String!) {
@@ -23,18 +24,6 @@ const HeaderContainer = styled.div`
     display: flex;
     flex-direction: column;
     align-items: center;
-`;
-
-const MainTitle = styled.span`
-    font-size: 30px;
-    font-weight: 600;
-    font-family: "Poppins", sans-serif !important;
-`;
-
-const SeparatorTitle = styled.strong`
-    font-size: 32px;
-    font-family: "Poppins", sans-serif !important;
-    margin: 0 16px;
 `;
 
 const Subtitle = styled.p`
@@ -78,12 +67,8 @@ function Signup() {
             <PageTitle title="Sign Up" />
             <FormBox>
                 <HeaderContainer>
-                    <h1>
-                        <MainTitle>Nomad</MainTitle>
-                        <SeparatorTitle>X</SeparatorTitle>
-                        <MainTitle>Coffee</MainTitle>
-                    </h1>
-                    <Subtitle>Sign up to find and sharecoffee shops.</Subtitle>
+                    <MainTitle />
+                    <Subtitle>Sign up to find and share coffee shops.</Subtitle>
                 </HeaderContainer>
                 <form onSubmit={handleSubmit(onSubmitValid)}>
                     <Input ref={register({

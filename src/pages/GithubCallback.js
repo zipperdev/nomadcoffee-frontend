@@ -18,6 +18,7 @@ const Container = styled.div`
     display: flex;
     justify-content: center;
     align-items: center;
+    flex-direction: column;
     height: 100%;
 `;
 
@@ -27,9 +28,22 @@ const Title = styled.h1`
     text-align: center;
 `;
 
+const Subtitle = styled.p`
+    margin-top: 10px;
+    font-size: 18px;
+    & > #error-accent {
+        font-weight: 600;
+        text-decoration: underline;
+        color: #ff5c33;
+    }
+    & > p {
+        font-weight: 600;
+    }
+`;
+
 function GithubCallback() {
     const history = useHistory();
-    const [ githubLoginCallback ] = useMutation(GITHUB_LOGIN_CALLBACK_MUTATION, {
+    const [ githubLoginCallback, { error } ] = useMutation(GITHUB_LOGIN_CALLBACK_MUTATION, {
         onCompleted: data => {
             const { githubLoginCallback: { success, error, token } } = data;
             if (success && !error) {
@@ -50,6 +64,12 @@ function GithubCallback() {
     }, [githubLoginCallback]);
     return <Container>
         <Title>Logging you in...</Title>
+        {error ? (
+            <Subtitle>
+                Sorry, there's an <span id="error-accent">error</span> :&#40;
+                <p>{error?.message}</p>
+            </Subtitle>
+        ) : null}
     </Container>;
 };
 

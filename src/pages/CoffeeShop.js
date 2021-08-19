@@ -1,12 +1,13 @@
 import React from "react";
+import { useParams } from "react-router-dom";
 import styled from "styled-components";
 import { gql, useQuery } from "@apollo/client";
+import SingleCoffeeShop from "../components/CoffeeShop";
 import Layout from "../components/Layout";
-import CoffeeShop from "../components/CoffeeShop";
 
-const SEE_COFFEE_SHOPS_QUERY = gql`
-    query seeCoffeeShops {
-        seeCoffeeShops {
+const SEE_COFFEE_SHOP_QUERY = gql`
+    query seeCoffeeShop($id: Int!) {
+        seeCoffeeShop(id: $id) {
             id
             name
             latitude
@@ -37,7 +38,6 @@ const Container = styled.div`
     align-items: center;
     flex-direction: column;
     padding: 30px 0;
-    row-gap: 60px;
 `;
 
 const Loading = styled.h1`
@@ -46,22 +46,25 @@ const Loading = styled.h1`
     margin: 20px 0 0 20px;
 `;
 
-function Home() {
-    const { data, loading } = useQuery(SEE_COFFEE_SHOPS_QUERY);
+function CoffeeShop() {
+    const { id } = useParams();
+    const { data, loading } = useQuery(SEE_COFFEE_SHOP_QUERY, {
+        variables: {
+            id: parseInt(id)
+        }
+    });
 
     return (
-        <Layout title="Home">
+        <Layout title={`${data ? data?.seeCoffeeShop.name : ""}${data ? " " : ""}Coffee Shop`}>
             {loading ? (
                 <Loading>Loading...</Loading>
             ) : (
                 <Container>
-                    {data?.seeCoffeeShops?.map((obj, index) => (
-                        <CoffeeShop key={index} index={index} obj={obj} />
-                    ))}
+                    <SingleCoffeeShop index={0} obj={data?.seeCoffeeShop} />
                 </Container>
             )}
         </Layout>
     );
 };
 
-export default Home;
+export default CoffeeShop;
