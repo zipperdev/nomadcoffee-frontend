@@ -213,8 +213,6 @@ function CoffeeShop({ index, obj }) {
                 position: new kakao.maps.LatLng(latitude, longitude)
             });
             marker.setMap(map);
-
-            console.log(map.getCenter());
         };
     }, [obj, index]);
     const deleteCoffeeShop = () => {
