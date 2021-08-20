@@ -44,11 +44,5 @@ const uploadLink = createUploadLink({
 });
 export const client = new ApolloClient({
     link: ApolloLink.from([ authLink, uploadLink ]), 
-    cache: new InMemoryCache({
-        typePolicies: {
-            User: {
-                keyFields: obj => `User:${obj.username}`
-            }
-        }
-    })
+    cache: new InMemoryCache()
 });

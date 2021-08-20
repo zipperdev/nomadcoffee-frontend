@@ -1,8 +1,8 @@
 /* global kakao */
 import React, { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
-import { useForm } from "react-hook-form";
 import { FiX } from "react-icons/fi";
+import { useForm } from "react-hook-form";
 import styled from "styled-components";
 import { gql, useMutation } from "@apollo/client";
 import ErrorText from "../components/auth/ErrorText";
@@ -57,7 +57,7 @@ const KakaoMap = styled.div`
     margin-top: 20px;
 `;
 
-const CategoryContainer = styled.div`
+const ObjectContainer = styled.div`
     display: flex;
     flex-direction: column;
     margin-top: 20px;
@@ -114,26 +114,43 @@ const Subtext = styled.h1`
     font-weight: 600;
 `;
 
-const Photos = styled.div`
-    width: 100%;
-    display: flex;
-`;
-
 const FileInput = styled.input`
     display: none;
 `;
 
 const FileInputLabel = styled.label`
-    font-weight: 600;
-    text-align: center;
-    padding: 10px;
-    cursor: pointer;
+    width: 101%;
+    height: 25px;
     display: block;
-    margin-top: 20px;
+    cursor: pointer;
+    margin: -6px 0 0 -0.5%;
+    padding: 13px 0 0 0;
+    padding-left: 18px;
+    font-weight: 600;
+    text-align: left;
     border-radius: 5px;
-    width: 100%;
-    height: 35px;
     background-color: #ffffff;
+    color: #17191c;
+    border: 1px solid ${props => props.theme.borderColor};
+`;
+
+const PhotosSection = styled.div`
+    width: 95.6%;
+    padding: 2%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+`;
+
+const Photo = styled.div`
+    width: 100px;
+    height: 100px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    overflow: hidden;
+    border-radius: 10px;
+    border: 3px solid ${props => props.theme.deepColor};
 `;
 
 const SButton = styled(Button)`
@@ -147,6 +164,9 @@ function AddCoffeeShop() {
         mode: "onChange"
     });
     const [ marker, setMarker ] = useState(null);
+    const [ photos, setPhotos ] = useState([]);
+    const [ photoUrls, setPhotoUrls ] = useState([]);
+    const [ photoError, setPhotoError ] = useState(null);
     const [ categories, setCategories ] = useState([]);
     const [ createCoffeeShop, { loading } ] = useMutation(CREATE_COFFEE_SHOP_MUTATION, {
         onCompleted: data => {
@@ -162,6 +182,9 @@ function AddCoffeeShop() {
     });
 
     useEffect(() => {
+        setError("images", {
+            message: "Please add image."
+        });
         const script = document.createElement("script");
         script.async = true;
         script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.REACT_APP_MAP_API}`;
@@ -183,18 +206,36 @@ function AddCoffeeShop() {
             pureMarker.setDraggable(true);
         };
     }, []);
+    useEffect(() => {
+        setPhotoUrls([]);
+        for (let i = 0; i < photos.length; i++) {
+            const photo = photos[i];
+            const reader = new FileReader();
+            reader.readAsDataURL(photo);
+            reader.onload = () => {
+                setPhotoUrls(urls => [...urls, { url: reader.result, id: photo.lastModified }]);
+            };
+        };
+    }, [photos]);
     const onSubmitValid = data => {
-        const { name, images } = data;
+        const { name } = data;
         const { La: longitude, Ma: latitude } = marker.getPosition();
-        createCoffeeShop({
-            variables: {
-                name, 
-                latitude: String(latitude), 
-                longitude: String(longitude), 
-                categories, 
-                photos: images
-            }
-        });
+        if (!photos) {
+            return setError("images", {
+                message: "Please add image."
+            });
+        };
+        if (name, photos, longitude, latitude && !loading) {
+            createCoffeeShop({
+                variables: {
+                    name, 
+                    latitude: String(latitude), 
+                    longitude: String(longitude), 
+                    categories, 
+                    photos: photos
+                }
+            });
+        };
     };
     const addCategories = event => {
         clearErrors("result");
@@ -205,7 +246,18 @@ function AddCoffeeShop() {
             setCategories(categories.filter((_, index) => index < categories.length -1));
         };
     };
-    const removeCategories = index => setCategories([...categories.filter(category => categories.indexOf(category) !== index)]);
+    const removeCategories = index => setCategories([ ...categories.filter(category => categories.indexOf(category) !== index) ]);
+    const addPhotos = event => {
+        clearErrors("result");
+        setPhotoError(null);
+        if (photos.length >= 10 || event.target.files.length + photos.length >= 10) {
+            setPhotoError({
+                message: "Photos must be no more than 10."
+            });
+        } else {
+            setPhotos(event.target.files);
+        };
+    };
     return (
         <Layout title="Create Coffee Shop">
             <Title>Create Coffee Shop</Title>
@@ -218,7 +270,7 @@ function AddCoffeeShop() {
                     }
                 })} onChange={() => clearErrors("result")} name="name" type="text" placeholder="Name" errorMessage={errors?.name?.message} />
                 <KakaoMap id="kakao-map"></KakaoMap>
-                <CategoryContainer className="categories">
+                <ObjectContainer className="categories">
                     <CategoryInput type="text" onKeyUp={event => addCategories(event)} placeholder="Press enter to add categories" />
                     <CategoryList>
                         {categories !== [] ? categories.map((category, index) => (
@@ -233,13 +285,25 @@ function AddCoffeeShop() {
                             <Subtext>Create some categories</Subtext>
                         ) : null}
                     </CategoryList>
-                </CategoryContainer>
-                <Photos>
-                    <FileInput ref={register({
-                        required: "Image is required."
-                    })} onChange={() => clearErrors("result")} name="images" id="images" type="file" multiple accept=".png, .jpg" />
-                    <FileInputLabel htmlFor="images">Choose Photos</FileInputLabel>
-                </Photos>
+                </ObjectContainer>
+                <ObjectContainer>
+                    <div>
+                        <FileInput id="images" onChange={event => {
+                            clearErrors("images");
+                            return addPhotos(event);
+                        }} type="file" multiple accept=".png, .jpg" />
+                        <FileInputLabel htmlFor="images">Choose Photos</FileInputLabel>
+                    </div>
+                    <PhotosSection>
+                        {!!photos[0] ? photoUrls.map((url, index) => (
+                            <Photo key={index} style={{ backgroundImage: `url(${url.url})` }} />
+                        )) : null}
+                        {!photoUrls[0] ? (
+                            <Subtext>Add some photos</Subtext>
+                        ): null}
+                    </PhotosSection>
+                </ObjectContainer>
+                <ErrorText>{photoError?.message ? photoError?.message : errors?.images?.message}</ErrorText>
                 <SButton type="submit" value={loading ? "Loading..." : "Create Coffee Shop"} disabled={loading || !isValid} />
                 <ErrorText>{errors?.result?.message}</ErrorText>
             </Form>

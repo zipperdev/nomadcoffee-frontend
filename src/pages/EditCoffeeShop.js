@@ -74,7 +74,7 @@ const KakaoMap = styled.div`
     margin-top: 20px;
 `;
 
-const CategoryContainer = styled.div`
+const ObjectContainer = styled.div`
     display: flex;
     flex-direction: column;
     margin-top: 20px;
@@ -131,26 +131,43 @@ const Subtext = styled.h1`
     font-weight: 600;
 `;
 
-const Photos = styled.div`
-    width: 100%;
-    display: flex;
-`;
-
 const FileInput = styled.input`
     display: none;
 `;
 
 const FileInputLabel = styled.label`
-    font-weight: 600;
-    text-align: center;
-    padding: 10px;
-    cursor: pointer;
+    width: 101%;
+    height: 25px;
     display: block;
-    margin-top: 20px;
+    cursor: pointer;
+    margin: -6px 0 0 -0.5%;
+    padding: 13px 0 0 0;
+    padding-left: 18px;
+    font-weight: 600;
+    text-align: left;
     border-radius: 5px;
-    width: 100%;
-    height: 35px;
     background-color: #ffffff;
+    color: #17191c;
+    border: 1px solid ${props => props.theme.borderColor};
+`;
+
+const PhotosSection = styled.div`
+    width: 95.6%;
+    padding: 2%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+`;
+
+const Photo = styled.div`
+    width: 100px;
+    height: 100px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    overflow: hidden;
+    border-radius: 10px;
+    border: 3px solid ${props => props.theme.deepColor};
 `;
 
 const SButton = styled(Button)`
@@ -162,10 +179,24 @@ function EditCoffeeShop() {
     const { id } = useParams();
     const history = useHistory();
     const [ marker, setMarker ] = useState(null);
+    const [ photos, setPhotos ] = useState([]);
+    const [ photoUrls, setPhotoUrls ] = useState([]);
+    const [ photoError, setPhotoError ] = useState(null);
     const [ categories, setCategories ] = useState([]);
+    const { register, handleSubmit, setError, clearErrors, setValue, formState: { errors, isValid } } = useForm({
+        mode: "onChange"
+    });
     const { data: coffeeShopData } = useQuery(SEE_COFFEE_SHOP_QUERY, {
         variables: {
             id: parseInt(id)
+        }, 
+        onCompleted: data => {
+            setValue("name", data.seeCoffeeShop.name);
+            if (marker) {
+                marker.setPosition(new kakao.maps.LatLng(data.seeCoffeeShop.latitude, data.seeCoffeeShop.longitude));
+            };
+            const compiledCategories = data.seeCoffeeShop.categories.map(value => value.name);
+            setCategories(compiledCategories);
         }
     });
     const [ editCoffeeShop, { loading } ] = useMutation(EDIT_COFFEE_SHOP_MUTATION, {
@@ -183,9 +214,6 @@ function EditCoffeeShop() {
             };
         }
     });
-    const { register, handleSubmit, setError, clearErrors, formState: { errors, isValid } } = useForm({
-        mode: "onChange"
-    });
 
     useEffect(() => {
         const script = document.createElement("script");
@@ -194,21 +222,37 @@ function EditCoffeeShop() {
         document.head.appendChild(script);
         
         script.onload = () => {
+            const latitude = coffeeShopData?.seeCoffeeShop?.latitude;
+            const longitude = coffeeShopData?.seeCoffeeShop?.longitude;
             const container = document.getElementById("kakao-map");
             const options = {
-                center: new kakao.maps.LatLng(37.517235, 127.047325),
+                center: new kakao.maps.LatLng(latitude ? latitude : 37.517235, longitude ? longitude : 127.047325),
                 level: 3
             };
             map = new window.kakao.maps.Map(container, options);
             
             const pureMarker = new kakao.maps.Marker({
-                position: new kakao.maps.LatLng(37.517235, 127.047325)
+                position: new kakao.maps.LatLng(
+                    latitude ? latitude : 37.517235, 
+                    longitude ? longitude : 127.047325
+                )
             });
             setMarker(pureMarker);
             pureMarker.setMap(map);
             pureMarker.setDraggable(true);
         };
     }, []);
+    useEffect(() => {
+        setPhotoUrls([]);
+        for (let i = 0; i < photos.length; i++) {
+            const photo = photos[i];
+            const reader = new FileReader();
+            reader.readAsDataURL(photo);
+            reader.onload = () => {
+                setPhotoUrls(urls => [...urls, { url: reader.result, id: photo.lastModified }]);
+            };
+        };
+    }, [photos]);
     const onSubmitValid = data => {
         const { name, images } = data;
         const { La: longitude, Ma: latitude } = marker.getPosition();
@@ -232,6 +276,17 @@ function EditCoffeeShop() {
         };
     };
     const removeCategories = index => setCategories([...categories.filter(category => categories.indexOf(category) !== index)]);
+    const addPhotos = event => {
+        clearErrors("result");
+        setPhotoError(null);
+        if (photos.length >= 10 || event.target.files.length + photos.length >= 10) {
+            setPhotoError({
+                message: "Photos must be no more than 10."
+            });
+        } else {
+            setPhotos(event.target.files);
+        };
+    };
     return (
         <Layout title="Edit Coffee Shop">
             <Title>Edit Coffee Shop</Title>
@@ -242,9 +297,9 @@ function EditCoffeeShop() {
                         value: 60, 
                         message: "Name must be shorter than 60."
                     }
-                })} onChange={() => clearErrors("result")} name="name" type="text" placeholder="Name" defaultValue={coffeeShopData?.seeCoffeeShop?.name} errorMessage={errors?.name?.message} />
+                })} onChange={() => clearErrors("result")} name="name" type="text" placeholder="Name" errorMessage={errors?.name?.message} />
                 <KakaoMap id="kakao-map"></KakaoMap>
-                <CategoryContainer className="categories">
+                <ObjectContainer className="categories">
                     <CategoryInput type="text" onKeyUp={event => addCategories(event)} placeholder="Press enter to add categories" />
                     <CategoryList>
                         {categories !== [] ? categories.map((category, index) => (
@@ -259,11 +314,25 @@ function EditCoffeeShop() {
                             <Subtext>Create some categories</Subtext>
                         ) : null}
                     </CategoryList>
-                </CategoryContainer>
-                <Photos>
-                    <FileInput ref={register()} onChange={() => clearErrors("result")} name="images" id="images" type="file" multiple accept=".png, .jpg" />
-                    <FileInputLabel htmlFor="images">Choose Photos</FileInputLabel>
-                </Photos>
+                </ObjectContainer>
+                <ObjectContainer>
+                    <div>
+                        <FileInput id="images" onChange={event => {
+                            clearErrors("images");
+                            return addPhotos(event);
+                        }} type="file" multiple accept=".png, .jpg" />
+                        <FileInputLabel htmlFor="images">Choose Photos</FileInputLabel>
+                    </div>
+                    <PhotosSection>
+                        {!!photos[0] ? photoUrls.map((url, index) => (
+                            <Photo key={index} style={{ backgroundImage: `url(${url.url})` }} />
+                        )) : null}
+                        {!photoUrls[0] ? (
+                            <Subtext>Add some photos</Subtext>
+                        ): null}
+                    </PhotosSection>
+                </ObjectContainer>
+                <ErrorText>{photoError?.message ? photoError?.message : errors?.images?.message}</ErrorText>
                 <SButton type="submit" value={loading ? "Loading..." : "Edit Coffee Shop"} disabled={loading || !isValid} />
                 <ErrorText>{errors?.result?.message}</ErrorText>
             </Form>
