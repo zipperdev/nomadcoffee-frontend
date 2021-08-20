@@ -69,7 +69,6 @@ const PannelBtn = styled.div`
     cursor: pointer;
     margin-left: 20px;
     & > svg {
-        stroke: #17191c;
         background-color: transparent !important;
     }
 `;
@@ -200,8 +199,8 @@ function CoffeeShop({ index, obj }) {
         document.head.appendChild(script);
         
         script.onload = () => {
-            const latitude = parseInt(obj.latitude);
-            const longitude = parseInt(obj.longitude);
+            const latitude = parseFloat(obj.latitude);
+            const longitude = parseFloat(obj.longitude);
             const container = document.getElementById(`kakao-map-${index}`);
             const options = {
                 center: new kakao.maps.LatLng(latitude, longitude),
@@ -214,8 +213,10 @@ function CoffeeShop({ index, obj }) {
                 position: new kakao.maps.LatLng(latitude, longitude)
             });
             marker.setMap(map);
+
+            console.log(map.getCenter());
         };
-    }, []);
+    }, [obj, index]);
     const deleteCoffeeShop = () => {
         if (!loading) {
             removeCoffeeShop();
@@ -244,7 +245,7 @@ function CoffeeShop({ index, obj }) {
             </TitleContainer>
             <DescContainer>
                 <DescMainContainer> 
-                    <MainImage src={obj.photos[0].url} />
+                    <MainImage src={obj?.photos[0]?.url} />
                 </DescMainContainer>
                 <DescDetailsContainer>
                     <KakaoMap id={`kakao-map-${index}`}></KakaoMap>
