@@ -225,14 +225,14 @@ function AddCoffeeShop() {
                 message: "Please add image."
             });
         };
-        if (name, photos, longitude, latitude && !loading) {
+        if (name && photos && longitude && latitude && !loading) {
             createCoffeeShop({
                 variables: {
                     name, 
                     latitude: String(latitude), 
                     longitude: String(longitude), 
                     categories, 
-                    photos: photos
+                    photos
                 }
             });
         };

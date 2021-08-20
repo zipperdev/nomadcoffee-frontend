@@ -175,9 +175,9 @@ const SButton = styled(Button)`
 `;
 
 function EditCoffeeShop() {
-    let map;
     const { id } = useParams();
     const history = useHistory();
+    const [ map, setMap ] = useState(null);
     const [ marker, setMarker ] = useState(null);
     const [ photos, setPhotos ] = useState([]);
     const [ photoUrls, setPhotoUrls ] = useState([]);
@@ -194,6 +194,12 @@ function EditCoffeeShop() {
             setValue("name", data.seeCoffeeShop.name);
             if (marker) {
                 marker.setPosition(new kakao.maps.LatLng(data.seeCoffeeShop.latitude, data.seeCoffeeShop.longitude));
+            };
+            if (map) {
+                map.setCenter(new kakao.maps.LatLng(
+                    marker.getPosition().Ma, 
+                    marker.getPosition().La
+                ));
             };
             const compiledCategories = data.seeCoffeeShop.categories.map(value => value.name);
             setCategories(compiledCategories);
@@ -229,7 +235,8 @@ function EditCoffeeShop() {
                 center: new kakao.maps.LatLng(latitude ? latitude : 37.517235, longitude ? longitude : 127.047325),
                 level: 3
             };
-            map = new window.kakao.maps.Map(container, options);
+            const pureMap = new window.kakao.maps.Map(container, options);
+            setMap(pureMap);
             
             const pureMarker = new kakao.maps.Marker({
                 position: new kakao.maps.LatLng(
@@ -238,10 +245,15 @@ function EditCoffeeShop() {
                 )
             });
             setMarker(pureMarker);
-            pureMarker.setMap(map);
+            pureMarker.setMap(pureMap);
             pureMarker.setDraggable(true);
+
+            pureMap.setCenter(new kakao.maps.LatLng(
+                pureMarker.getPosition().Ma, 
+                pureMarker.getPosition().La
+            ));
         };
-    }, []);
+    }, [coffeeShopData]);
     useEffect(() => {
         setPhotoUrls([]);
         for (let i = 0; i < photos.length; i++) {
@@ -254,17 +266,25 @@ function EditCoffeeShop() {
         };
     }, [photos]);
     const onSubmitValid = data => {
-        const { name, images } = data;
+        const { name } = data;
         const { La: longitude, Ma: latitude } = marker.getPosition();
-        editCoffeeShop({
-            variables: {
-                name, 
-                latitude: String(latitude), 
-                longitude: String(longitude), 
-                categories, 
-                photos: images
-            }
-        });
+        console.log(categories, !photos || photos === []);
+        if (!photos || !photos[0]) {
+            return setError("images", {
+                message: "Please add image."
+            });
+        };
+        if (name && photos && longitude && latitude && !loading) {
+            editCoffeeShop({
+                variables: {
+                    name, 
+                    latitude: String(latitude), 
+                    longitude: String(longitude), 
+                    categories, 
+                    photos
+                }
+            });
+        };
     };
     const addCategories = event => {
         clearErrors("result");
@@ -328,7 +348,7 @@ function EditCoffeeShop() {
                             <Photo key={index} style={{ backgroundImage: `url(${url.url})` }} />
                         )) : null}
                         {!photoUrls[0] ? (
-                            <Subtext>Add some photos</Subtext>
+                            <Subtext>Please rechose some photos</Subtext>
                         ): null}
                     </PhotosSection>
                 </ObjectContainer>

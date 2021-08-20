@@ -208,7 +208,7 @@ function CoffeeShop({ index, obj }) {
             };
             
             const map = new window.kakao.maps.Map(container, options);
-            
+
             const marker = new kakao.maps.Marker({
                 position: new kakao.maps.LatLng(latitude, longitude)
             });

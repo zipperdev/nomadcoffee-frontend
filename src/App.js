@@ -1,11 +1,12 @@
 import dotenv from "dotenv";
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { ApolloProvider, useReactiveVar } from "@apollo/client";
 import { ThemeProvider } from "styled-components";
 import { authenticatedVar, client, darkModeVar } from "./apollo";
 import { darkTheme, GlobalStyles, lightTheme } from "./styles";
+import ScrollToTop from "./components/ScrollToTop";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -20,12 +21,17 @@ function App() {
     const darkMode = useReactiveVar(darkModeVar);
     const authenticated = useReactiveVar(authenticatedVar);
 
+    useEffect(() => {
+        document.getElementById("root").scrollTo(0, 0);
+    }, []);
+
     return (
         <ApolloProvider client={client}>
             <HelmetProvider>
                 <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
                     <GlobalStyles />
                     <Router>
+                        <ScrollToTop />
                         <Switch>
                             <Route exact path="/" component={authenticated ? Home : Login} />
                             {authenticated ? null : <Route exact path="/signup" component={Signup} />}

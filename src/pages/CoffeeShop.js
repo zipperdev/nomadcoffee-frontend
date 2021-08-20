@@ -49,6 +49,7 @@ const Loading = styled.h1`
 function CoffeeShop() {
     const { id } = useParams();
     const { data, loading } = useQuery(SEE_COFFEE_SHOP_QUERY, {
+        fetchPolicy: "no-cache", 
         variables: {
             id: parseInt(id)
         }
