@@ -44,5 +44,30 @@ const uploadLink = createUploadLink({
 });
 export const client = new ApolloClient({
     link: ApolloLink.from([ authLink, uploadLink ]), 
-    cache: new InMemoryCache()
+    cache: new InMemoryCache({
+        typePolicies: {
+            Query: {
+                fields: {
+                    seeCoffeeShops: {
+                        keyArgs: false, 
+                        merge(existing, incoming, { args }) {
+                            if (args.hasOwnProperty("lastId") && !!args.lastId) {
+                                const merged = existing ? existing.slice(0) : [];
+                                const filteredMerged = merged.filter((value, index) => merged.indexOf(value) === index);
+                                const filteredIncoming = incoming.filter(value => !filteredMerged.some(item => item.__ref === value.__ref));
+                                return [ ...filteredMerged, ...filteredIncoming ];
+                            } else if (existing) {
+                                const merged = existing ? existing.slice(0) : [];
+                                const filteredMerged = merged.filter((value, index) => merged.indexOf(value) === index);
+                                const filteredIncoming = incoming.filter(value => !filteredMerged.some(item => item.__ref === value.__ref));
+                                return [ ...filteredMerged, ...filteredIncoming ];
+                            } else {
+                                return [ ...incoming ];
+                            };
+                        }
+                    }
+                }
+            }
+        }
+    })
 });

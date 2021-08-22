@@ -158,7 +158,6 @@ const SButton = styled(Button)`
 `;
 
 function AddCoffeeShop() {
-    let map;
     const history = useHistory();
     const { register, handleSubmit, setError, clearErrors, formState: { errors, isValid } } = useForm({
         mode: "onChange"
@@ -176,15 +175,17 @@ function AddCoffeeShop() {
                     message: error
                 });
             } else if (coffeeShop) {
-                history.push(`/shops/${coffeeShop.id}`);
+                history.push({
+                    pathname: `/shops/${coffeeShop.id}`, 
+                    state: {
+                        status: "modified"
+                    }
+                });
             };
         }
     });
 
     useEffect(() => {
-        setError("images", {
-            message: "Please add image."
-        });
         const script = document.createElement("script");
         script.async = true;
         script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.REACT_APP_MAP_API}`;
@@ -196,13 +197,13 @@ function AddCoffeeShop() {
                 center: new kakao.maps.LatLng(37.517235, 127.047325),
                 level: 3
             };
-            map = new window.kakao.maps.Map(container, options);
+            const kakaoMap = new window.kakao.maps.Map(container, options);
             
             const pureMarker = new kakao.maps.Marker({
                 position: new kakao.maps.LatLng(37.517235, 127.047325)
             });
             setMarker(pureMarker);
-            pureMarker.setMap(map);
+            pureMarker.setMap(kakaoMap);
             pureMarker.setDraggable(true);
         };
     }, []);
@@ -258,10 +259,15 @@ function AddCoffeeShop() {
             setPhotos(event.target.files);
         };
     };
+    const preventDefault = e => {
+        if (e.code === "Enter") {
+            e.preventDefault();
+        };
+    };
     return (
         <Layout title="Create Coffee Shop">
             <Title>Create Coffee Shop</Title>
-            <Form onSubmit={handleSubmit(onSubmitValid)}>
+            <Form onSubmit={handleSubmit(onSubmitValid)} onKeyDown={e => preventDefault(e)}>
                 <Input ref={register({
                     required: "Name is required.", 
                     maxLength: {

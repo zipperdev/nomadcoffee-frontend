@@ -1,12 +1,12 @@
 /* global kakao */
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useHistory } from "react-router-dom";
-import { FiTrash2, FiEdit3 } from "react-icons/fi";
+import { FiTrash2, FiEdit3, IoIosArrowForward, IoIosArrowBack } from "react-icons/all";
 import PropTypes from "prop-types";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import { gql, useMutation } from "@apollo/client";
-import Avatar from "../components/Avatar";
-import { useUser } from "../hooks/useUser";
+import Avatar from "../Avatar";
+import { useUser } from "../../hooks/useUser";
 
 const REMOVE_COFFEE_SHOP_MUTATION = gql`
     mutation removeCoffeeShop($id: Int!) {
@@ -80,6 +80,7 @@ const DescContainer = styled.div`
 `;
 
 const DescMainContainer = styled.div`
+    position: relative;
     width: 70%;
     height: 100%;
 `;
@@ -95,6 +96,34 @@ const MainImage = styled.div`
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
+    transition: background-image 0.2s ease-in-out;
+`;
+
+const MainImageControl = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 10%;
+    height: 100%;
+    top: 0;
+    cursor: pointer;
+    position: absolute;
+    background-color: rgba(200, 200, 200, 0.4);
+    opacity: 0.03;
+    transition: opacity 0.2s ease-out;
+    ${props => props.direction === "left" ? css`
+        left: 0;
+        border-radius: 0 20px 20px 0;
+    ` : props.direction === "right" ? css`
+        right: 0;
+        border-radius: 20px 0 0 20px;
+    ` : null}
+    &:hover {
+        opacity: 0.5;
+    }
+    & * {
+        color: #ffffff;
+    }
 `;
 
 const DescDetailsContainer = styled.div`
@@ -102,6 +131,7 @@ const DescDetailsContainer = styled.div`
     height: 100%;
     display: grid;
     grid-template-rows: 5fr 4fr 3.8fr;
+    background-color: ${props => props.theme.bgColor};
 `;
 
 const KakaoMap = styled.div`
@@ -155,8 +185,8 @@ const Photo = styled.div`
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 60px;
-    height: 60px;
+    width: 56px;
+    height: 56px;
     background-color: ${props => props.theme.fontColor};
     background-image: url(${props => props.src});
     background-size: cover;
@@ -173,21 +203,26 @@ const Category = styled.h1`
     background-color: ${props => props.theme.deepColor};
     border-radius: 8px;
     overflow-wrap: break-word;
+    font-weight: 600;
     line-height: 1.2rem;
 `;
 
 function CoffeeShop({ index, obj }) {
     const { data } = useUser();
     const history = useHistory();
+    const [ mainImageIndex, setMainImageIndex ] = useState(0);
     const [ removeCoffeeShop, { loading } ] = useMutation(REMOVE_COFFEE_SHOP_MUTATION, {
         variables: {
             id: obj.id
         }, 
-        onCompleted: data => {
-            const { removeCoffeeShop: { success } } = data;
+        update: (cache, result) => {
+            const { data: { removeCoffeeShop: { success } } } = result;
             if (success) {
+                const fragmentId = `CoffeeShop:${obj.id}`;
+                cache.evict({
+                    id: fragmentId
+                });
                 history.push("/");
-                window.location.reload();
             };
         }
     });
@@ -207,17 +242,30 @@ function CoffeeShop({ index, obj }) {
                 level: 3
             };
             
-            const map = new window.kakao.maps.Map(container, options);
+            const kakaoMap = new window.kakao.maps.Map(container, options);
 
             const marker = new kakao.maps.Marker({
                 position: new kakao.maps.LatLng(latitude, longitude)
             });
-            marker.setMap(map);
+            marker.setMap(kakaoMap);
+            kakaoMap.setCenter(new kakao.maps.LatLng(
+                marker.getPosition().Ma, 
+                marker.getPosition().La
+            ));
         };
     }, [obj, index]);
     const deleteCoffeeShop = () => {
         if (!loading) {
             removeCoffeeShop();
+        };
+    };
+    const changeMainImage = (skip, object) => {
+        if (skip !== 0) {
+            if (skip <= -1 && !(mainImageIndex + skip < 0)) {
+                setMainImageIndex(mainImageIndex + skip);
+            } else if (skip >= 1 && !(mainImageIndex + skip >= object.length)) {
+                setMainImageIndex(mainImageIndex + skip);
+            };
         };
     };
     return (
@@ -242,8 +290,14 @@ function CoffeeShop({ index, obj }) {
                 ) : null}
             </TitleContainer>
             <DescContainer>
-                <DescMainContainer> 
-                    <MainImage src={obj?.photos[0]?.url} />
+                <DescMainContainer>
+                    <MainImageControl onClick={() => changeMainImage(-1, obj.photos)} direction="left">
+                        <IoIosArrowBack size={34} />
+                    </MainImageControl>
+                    <MainImage src={obj?.photos[mainImageIndex]?.url} />
+                    <MainImageControl onClick={() => changeMainImage(1, obj.photos)} direction="right">
+                        <IoIosArrowForward size={34} />
+                    </MainImageControl>
                 </DescMainContainer>
                 <DescDetailsContainer>
                     <KakaoMap id={`kakao-map-${index}`}></KakaoMap>

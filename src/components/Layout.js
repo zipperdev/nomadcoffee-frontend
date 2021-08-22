@@ -106,6 +106,7 @@ const Input = styled.input`
 `;
 
 const Button = styled.button`
+    display: block;
     position: absolute;
     margin-top: 1px;
     right: 5px;
@@ -116,6 +117,9 @@ const Button = styled.button`
     & > svg {
         stroke: #17191c;
         background-color: transparent;
+    }
+    @media screen and (max-width: 555px) {
+        display: none;
     }
 `;
 

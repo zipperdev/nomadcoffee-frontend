@@ -20,6 +20,11 @@ export const darkTheme = {
 export const GlobalStyles = createGlobalStyle`
     ${reset}
     html,
+    body {
+        background-color: ${props => props.theme.bgColor};
+    }
+
+    html,
     body,
     div#root {
         height: 100%;
@@ -31,11 +36,6 @@ export const GlobalStyles = createGlobalStyle`
         padding: 0;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
         color: ${props => props.theme.fontColor};
-    }
-    
-    html,
-    body {
-        background-color: ${props => props.theme.bgColor};
     }
 
     input, button {

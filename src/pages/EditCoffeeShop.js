@@ -129,6 +129,14 @@ const RemoveCategory = styled.span`
 
 const Subtext = styled.h1`
     font-weight: 600;
+    & b {
+        font-weight: 700;
+    }
+    & strong {
+        font-weight: 700;
+        color: ${props => props.theme.accent};
+        text-decoration: underline;
+    }
 `;
 
 const FileInput = styled.input`
@@ -177,7 +185,7 @@ const SButton = styled(Button)`
 function EditCoffeeShop() {
     const { id } = useParams();
     const history = useHistory();
-    const [ map, setMap ] = useState(null);
+    const [ kakaoMap, setKakaoMap ] = useState(null);
     const [ marker, setMarker ] = useState(null);
     const [ photos, setPhotos ] = useState([]);
     const [ photoUrls, setPhotoUrls ] = useState([]);
@@ -187,6 +195,7 @@ function EditCoffeeShop() {
         mode: "onChange"
     });
     const { data: coffeeShopData } = useQuery(SEE_COFFEE_SHOP_QUERY, {
+        fetchPolicy: "cache-and-network", 
         variables: {
             id: parseInt(id)
         }, 
@@ -195,8 +204,8 @@ function EditCoffeeShop() {
             if (marker) {
                 marker.setPosition(new kakao.maps.LatLng(data.seeCoffeeShop.latitude, data.seeCoffeeShop.longitude));
             };
-            if (map) {
-                map.setCenter(new kakao.maps.LatLng(
+            if (kakaoMap) {
+                kakaoMap.setCenter(new kakao.maps.LatLng(
                     marker.getPosition().Ma, 
                     marker.getPosition().La
                 ));
@@ -216,7 +225,12 @@ function EditCoffeeShop() {
                     message: error
                 });
             } else {
-                history.push(`/shops/${coffeeShopData?.seeCoffeeShop?.id}`);
+                history.push({
+                    pathname: `/shops/${coffeeShopData?.seeCoffeeShop?.id}`, 
+                    state: {
+                        status: "modified"
+                    }
+                });
             };
         }
     });
@@ -236,7 +250,7 @@ function EditCoffeeShop() {
                 level: 3
             };
             const pureMap = new window.kakao.maps.Map(container, options);
-            setMap(pureMap);
+            setKakaoMap(pureMap);
             
             const pureMarker = new kakao.maps.Marker({
                 position: new kakao.maps.LatLng(
@@ -268,19 +282,13 @@ function EditCoffeeShop() {
     const onSubmitValid = data => {
         const { name } = data;
         const { La: longitude, Ma: latitude } = marker.getPosition();
-        console.log(categories, !photos || photos === []);
-        if (!photos || !photos[0]) {
-            return setError("images", {
-                message: "Please add image."
-            });
-        };
         if (name && photos && longitude && latitude && !loading) {
             editCoffeeShop({
                 variables: {
                     name, 
                     latitude: String(latitude), 
                     longitude: String(longitude), 
-                    categories, 
+                    categories: categories, 
                     photos
                 }
             });
@@ -307,10 +315,15 @@ function EditCoffeeShop() {
             setPhotos(event.target.files);
         };
     };
+    const preventDefault = e => {
+        if (e.code === "Enter") {
+            e.preventDefault();
+        };
+    };
     return (
         <Layout title="Edit Coffee Shop">
             <Title>Edit Coffee Shop</Title>
-            <Form onSubmit={handleSubmit(onSubmitValid)}>
+            <Form onSubmit={handleSubmit(onSubmitValid)} onKeyDown={e => preventDefault(e)}>
                 <Input ref={register({
                     required: "Name is required.", 
                     maxLength: {
@@ -348,11 +361,11 @@ function EditCoffeeShop() {
                             <Photo key={index} style={{ backgroundImage: `url(${url.url})` }} />
                         )) : null}
                         {!photoUrls[0] ? (
-                            <Subtext>Please rechose some photos</Subtext>
+                            <Subtext>Choose some photos <b>if you want to <strong>select again</strong></b></Subtext>
                         ): null}
                     </PhotosSection>
                 </ObjectContainer>
-                <ErrorText>{photoError?.message ? photoError?.message : errors?.images?.message}</ErrorText>
+                <ErrorText>{photoError?.message}</ErrorText>
                 <SButton type="submit" value={loading ? "Loading..." : "Edit Coffee Shop"} disabled={loading || !isValid} />
                 <ErrorText>{errors?.result?.message}</ErrorText>
             </Form>

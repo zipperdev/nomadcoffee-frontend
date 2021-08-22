@@ -1,12 +1,13 @@
-import React from "react";
+import React, { useEffect } from "react";
 import styled from "styled-components";
 import { gql, useQuery } from "@apollo/client";
+import _ from "lodash";
 import Layout from "../components/Layout";
-import CoffeeShop from "../components/CoffeeShop";
+import CoffeeShop from "../components/coffeeShop/CoffeeShop";
 
 const SEE_COFFEE_SHOPS_QUERY = gql`
-    query seeCoffeeShops {
-        seeCoffeeShops {
+    query seeCoffeeShops($lastId: Int) {
+        seeCoffeeShops(lastId: $lastId) {
             id
             name
             latitude
@@ -47,19 +48,35 @@ const Loading = styled.h1`
 `;
 
 function Home() {
-    const { data, loading } = useQuery(SEE_COFFEE_SHOPS_QUERY);
+    const { data, loading, fetchMore } = useQuery(SEE_COFFEE_SHOPS_QUERY, {
+        fetchPolicy: "network-only"
+    });
 
+    useEffect(() => {
+        const isOnBottom = () => Math.ceil(window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight;
+
+        window.addEventListener("scroll", _.throttle(async () => {
+            const isBottom = isOnBottom();
+            const lastId =  data?.seeCoffeeShops[data?.seeCoffeeShops.length - 1]?.id;
+            if (isBottom && !loading && lastId) {
+                await fetchMore({
+                    variables: {
+                        lastId
+                    }
+                });
+            };
+        }, 300));
+    });
     return (
         <Layout title="Home">
-            {loading ? (
-                <Loading>Loading...</Loading>
-            ) : (
-                <Container>
-                    {data?.seeCoffeeShops?.map((obj, index) => (
-                        <CoffeeShop key={index} index={index} obj={obj} />
-                    ))}
-                </Container>
-            )}
+            <Container>
+                {loading && !data ? (
+                    <Loading>Loading...</Loading>
+                ) : null}
+                {data?.seeCoffeeShops?.map((obj, index) => (
+                    <CoffeeShop key={index} index={index} obj={obj} />
+                ))}
+            </Container>
         </Layout>
     );
 };

@@ -75,12 +75,17 @@ function Login() {
             });
         };
     };
+    const preventDefault = e => {
+        if (e.code === "Enter") {
+            e.preventDefault();
+        };
+    };
     return (
         <AuthLayout>
             <PageTitle title="Log In" />
             <FormBox>
                 <MainTitle />
-                <form onSubmit={handleSubmit(onSubmitValid)}>
+                <form onSubmit={handleSubmit(onSubmitValid)} onKeyDown={e => preventDefault(e)}>
                     <Input ref={register({
                         required: "Username is required."
                     })} onChange={() => clearErrors("result")} name="username" type="text" placeholder="Username" errorMessage={errors?.username?.message}  />

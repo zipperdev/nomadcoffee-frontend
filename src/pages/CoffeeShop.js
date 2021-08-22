@@ -1,8 +1,8 @@
 import React from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import { gql, useQuery } from "@apollo/client";
-import SingleCoffeeShop from "../components/CoffeeShop";
+import SingleCoffeeShop from "../components/coffeeShop/CoffeeShop";
 import Layout from "../components/Layout";
 
 const SEE_COFFEE_SHOP_QUERY = gql`
@@ -48,8 +48,9 @@ const Loading = styled.h1`
 
 function CoffeeShop() {
     const { id } = useParams();
+    const { state } = useLocation();
     const { data, loading } = useQuery(SEE_COFFEE_SHOP_QUERY, {
-        fetchPolicy: "no-cache", 
+        fetchPolicy: state?.status === "modified" ? "network-only" : "cache-first", 
         variables: {
             id: parseInt(id)
         }

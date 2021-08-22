@@ -37,7 +37,7 @@ function App() {
                             {authenticated ? null : <Route exact path="/signup" component={Signup} />}
                             {authenticated ? null : <Route exact path="/github/callback" component={GithubCallback} />}
                             {authenticated ? <Route exact path="/add" component={AddCoffeeShop} /> : null}
-                            {authenticated ? <Route exact path="/shops/:id" component={CoffeeShop} /> : null}
+                            {authenticated ? <Route exact path="/shops/:id" render={props => <CoffeeShop {...props} />} /> : null}
                             {authenticated ? <Route exact path="/shops/:id/edit" component={EditCoffeeShop} /> : null}
                             <Route path="*" component={NotFound} />
                         </Switch>

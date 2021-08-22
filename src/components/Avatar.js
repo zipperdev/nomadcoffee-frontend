@@ -1,6 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import styled from "styled-components";
+import NullAvatarImg from "../images/nullAvatar.png";
 
 const Container = styled.div`
     display: flex;
@@ -19,7 +20,7 @@ const SAvatar = styled.div`
     height: ${props => `${props.size}px`};
     border-radius: 50%;
     background-color: transparent;
-    background-image: url(${props => props.src});
+    background-image: url(${props => props.src ? props.src : NullAvatarImg});
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;

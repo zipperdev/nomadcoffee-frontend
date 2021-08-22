@@ -62,6 +62,11 @@ function Signup() {
             });
         };
     };
+    const preventDefault = e => {
+        if (e.code === "Enter") {
+            e.preventDefault();
+        };
+    };
     return (
         <AuthLayout>
             <PageTitle title="Sign Up" />
@@ -70,7 +75,7 @@ function Signup() {
                     <MainTitle />
                     <Subtitle>Sign up to find and share coffee shops.</Subtitle>
                 </HeaderContainer>
-                <form onSubmit={handleSubmit(onSubmitValid)}>
+                <form onSubmit={handleSubmit(onSubmitValid)} onKeyDown={e => preventDefault(e)}>
                     <Input ref={register({
                         required: "Username is required.", 
                         maxLength: {
