@@ -48,11 +48,12 @@ const Loading = styled.h1`
 `;
 
 function Home() {
-    const { data, loading, fetchMore } = useQuery(SEE_COFFEE_SHOPS_QUERY, {
+    const { data, loading, fetchMore, refetch } = useQuery(SEE_COFFEE_SHOPS_QUERY, {
         fetchPolicy: "network-only"
     });
 
     useEffect(() => {
+        refetch();
         const isOnBottom = () => Math.ceil(window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight;
 
         window.addEventListener("scroll", _.throttle(async () => {
