@@ -92,23 +92,6 @@ export const client = new ApolloClient({
                                         ...userFilteredIncoming
                                     ]
                                 };
-                            } else if (coffeeShopExisting && userExisting && coffeeShopIncoming[0] && userIncoming[0]) {
-                                const coffeeShopMerged = coffeeShopExisting ? coffeeShopExisting.slice(0) : [];
-                                const userMerged = userExisting ? userExisting.slice(0) : [];
-                                const coffeeShopFilteredMerged = coffeeShopMerged.filter((value, index) => coffeeShopMerged.indexOf(value) === index);
-                                const userFilteredMerged = userMerged.filter((value, index) => userMerged.indexOf(value) === index);
-                                const coffeeShopFilteredIncoming = coffeeShopIncoming.filter(value => !coffeeShopFilteredMerged.some(item => item.__ref === value.__ref));
-                                const userFilteredIncoming = userIncoming.filter(value => !userFilteredMerged.some(item => item.__ref === value.__ref));
-                                return {
-                                    coffeeShops: [
-                                        ...coffeeShopFilteredMerged, 
-                                        ...coffeeShopFilteredIncoming
-                                    ], 
-                                    users: [
-                                        ...userFilteredMerged, 
-                                        ...userFilteredIncoming
-                                    ]
-                                };
                             } else {
                                 return {
                                     coffeeShops: [
