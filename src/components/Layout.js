@@ -1,5 +1,6 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
+import { useForm } from "react-hook-form";
 import { FiLogOut, FiPlusCircle, FiSun, FiMoon, FiSearch } from "react-icons/fi";
 import PropTypes from "prop-types";
 import styled from "styled-components";
@@ -178,8 +179,17 @@ const Children = styled.div`
 
 function Layout({ title, children }) {
     const { data } = useUser();
+    const history = useHistory();
+    const { handleSubmit, register } = useForm();
     const darkMode = useReactiveVar(darkModeVar);
     const authenticated = useReactiveVar(authenticatedVar);
+
+    const onSubmit = data => {
+        const { keyword } = data;
+        if (keyword.replace(/ /g, "")) {
+            history.push(`/search?keyword=${keyword}`);
+        };
+    };
     return (
         <Container>
             <PageTitle title={title} />
@@ -195,8 +205,8 @@ function Layout({ title, children }) {
                         </HeaderLink>
                     </div>
                     <SearchSection>
-                        <SearchForm>
-                            <Input type="text" placeholder="Search" />
+                        <SearchForm onSubmit={handleSubmit(onSubmit)}>
+                            <Input ref={register({})} type="text" name="keyword" placeholder="Search" />
                             <Button type="submit">
                                 <FiSearch size={18} />
                             </Button>

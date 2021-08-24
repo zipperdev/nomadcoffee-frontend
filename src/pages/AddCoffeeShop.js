@@ -221,7 +221,7 @@ function AddCoffeeShop() {
     const onSubmitValid = data => {
         const { name } = data;
         const { La: longitude, Ma: latitude } = marker.getPosition();
-        if (!photos) {
+        if (!photos[0]) {
             return setError("images", {
                 message: "Please add image."
             });

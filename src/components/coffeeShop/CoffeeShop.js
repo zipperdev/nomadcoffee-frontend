@@ -5,8 +5,9 @@ import { FiTrash2, FiEdit3, IoIosArrowForward, IoIosArrowBack } from "react-icon
 import PropTypes from "prop-types";
 import styled, { css } from "styled-components";
 import { gql, useMutation } from "@apollo/client";
-import Avatar from "../Avatar";
+import _ from "lodash";
 import { useUser } from "../../hooks/useUser";
+import Avatar from "../Avatar";
 
 const REMOVE_COFFEE_SHOP_MUTATION = gql`
     mutation removeCoffeeShop($id: Int!) {
@@ -252,7 +253,16 @@ function CoffeeShop({ index, obj }) {
                 marker.getPosition().Ma, 
                 marker.getPosition().La
             ));
+
+            window.addEventListener("resize", _.throttle(() => {
+                kakaoMap.relayout();
+                kakaoMap.setCenter(new kakao.maps.LatLng(
+                    marker.getPosition().Ma, 
+                    marker.getPosition().La
+                ));
+            }, 100));
         };
+
     }, [obj, index]);
     const deleteCoffeeShop = () => {
         if (!loading) {

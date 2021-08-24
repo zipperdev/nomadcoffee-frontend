@@ -53,7 +53,6 @@ function Home() {
     });
 
     useEffect(() => {
-        refetch();
         const isOnBottom = () => Math.ceil(window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight;
 
         window.addEventListener("scroll", _.throttle(async () => {
@@ -68,6 +67,9 @@ function Home() {
             };
         }, 300));
     });
+    useEffect(() => {
+        refetch();
+    }, [refetch]);
     return (
         <Layout title="Home">
             <Container>
